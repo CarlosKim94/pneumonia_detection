@@ -2,8 +2,9 @@ import numpy as np
 import os
 import onnxruntime as ort
 from keras_image_helper import create_preprocessor
-from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi import FastAPI, Form
+from fastapi.responses import HTMLResponse
+from pydantic import BaseModel, HttpUrl
 import uvicorn
 
 model_name = os.getenv("MODEL_NAME", "model/pneumonia_mobilenet_v2.onnx")
@@ -36,33 +37,43 @@ output_name = session.get_outputs()[0].name
 classes = ['NORMAL', 'PNEUMONIA']
 
 class PredictRequest(BaseModel):
-    image_path: str
+    url: HttpUrl
 
-class PredictResponse(BaseModel):
-    predictions: dict[str, float]
-    top_class: str
-    top_probability: float
+# HTML frontend for testing
+@app.get("/", response_class=HTMLResponse)
+def home():
+    return """
+    <html>
+        <body>
+            <h2>Pneumonia Detection (URL)</h2>
+            <form action="/predict" method="post">
+                <input type="text" name="url" placeholder="Enter image URL" size="60" required>
+                <br><br>
+                <button type="submit">Predict</button>
+            </form>
+        </body>
+    </html>
+    """
 
-def predict_single(request: PredictRequest):
-    X = preprocessor.from_path(request.image_path)
-    logits = session.run([output_name], {input_name: X})[0][0]
-
-    probs = 1 / (1 + np.exp(-logits))  # sigmoid
-    probs = float(np.squeeze(probs))
-    probs_dict = [round(1 - probs, 4), round(probs, 4)]
-
-    return dict(zip(classes, probs_dict))
+def github_raw_url(url):
+    if "github.com" in url and "/blob/" in url:
+        url = url.replace("github.com", "raw.githubusercontent.com").replace("/blob/", "/")
+    return url
 
 @app.post("/predict")
-def predict(request: PredictRequest) -> PredictResponse:
-    predictions = predict_single(request)
-    top_class = max(predictions, key=predictions.get)
-    top_probability = predictions[top_class]
-    return PredictResponse(
-        predictions=predictions,
-        top_class=top_class,
-        top_probability=top_probability
-    )
+def predict(url: str = Form(...)):
+    # Preprocess image directly from URL
+    url = github_raw_url(url)
+    X = preprocessor.from_url(url)
+
+    # ONNX inference
+    logits = session.run([output_name], {input_name: X})[0][0]
+
+    # Sigmoid probability
+    prob = float(1 / (1 + np.exp(-logits.item())))
+    label = "PNEUMONIA" if prob > 0.5 else "NORMAL"
+
+    return {"prediction": label, "probability": round(prob, 4)}
 
 @app.get("/health")
 def health():

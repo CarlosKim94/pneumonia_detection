@@ -2,14 +2,11 @@ import requests
 
 url = 'http://localhost:8080/predict'
 
-request = {
-    "image_path": "data/chest_xray_dataset/test/PNEUMONIA/person10_virus_35.jpeg"
+request_body = {
+    "url": "https://raw.githubusercontent.com/CarlosKim94/pneumonia_detection/main/data/chest_xray_dataset/test/PNEUMONIA/person10_virus_35.jpeg"
 }
 
-response = requests.post(url, json=request)
+response = requests.post(url, data=request_body)
 result = response.json()
 
-print(f"Top prediction: {result['top_class']} ({result['top_probability']:.2%})")
-print(f"\nAll predictions:")
-for cls, prob in result['predictions'].items():
-    print(f"  {cls:12s}: {prob:.2%}")
+print(f"Top prediction: {result['prediction']} ({result['probability']:.2%})")
