@@ -1,5 +1,7 @@
 # Pneumonia Detection using Deep Learning
 
+![](https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/sample_data.png)
+
 ## 📌 Overview
 This project implements a deep learning pipeline for binary classification of chest X-ray images to detect pneumonia. The objective of this project is to build an image classifier that can assist in automated screening and decision support for pneumonia detection from chest X-rays. The model is trained and evaluated on the publicly available Chest X-Ray Pneumonia dataset from **Kaggle by Paul Mooney**. The model leverages a pretrained MobileNetV2 architecture, fine-tuned with various hyperparameters such as learning rate and dropout. Results are evaluated using standard metrics such as accuracy, precision, recall, F1-score, confusion matrix, and ROC AUC.
 
@@ -14,6 +16,8 @@ This project explores the use of deep learning–based image classification to a
 
 ## 📊 Dataset
 The dataset consists of frontal chest radiographs organized into three subsets including train (5216 images), validation (16 images), and test (624 images), with two class labels: NORMAL and PNEUMONIA. Pneumonia cases include both bacterial and viral infections, while normal cases mean healthy.
+
+<img src="https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/dataset_distribution.png" width="400" height="500">
 
 Dataset Details:
 - Classes:
@@ -39,6 +43,17 @@ A pretrained MobileNetV2 model is used as the feature extractor. The original cl
 
 ### 4. Training & Fine-Tuning
 Transfer learning is applied by freezing the backbone network and fine-tuning the classifier using binary cross-entropy loss and the Adam optimizer. Learning rate and dropout values are tuned using validation performance.
+<h4>Without Fine Tuning</h4>
+
+![](https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/no_finetuning.png)
+
+<h4>Learning Rate Fine Tuning</h4>
+
+![](https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/lr_finetuning.png)
+
+<h4>Dropout Rate Fine Tuning</h4>
+
+![](https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/dr_finetuning.png)
 
 ### 5. Evaluation
 The final model is evaluated on a held-out test set using accuracy, precision, recall, F1-score, confusion matrix, and ROC AUC.
@@ -49,6 +64,10 @@ The trained model is exported to ONNX format and prepared for deployment as an i
 ---
 
 ## 📊 Results
+Classification Report      |  Confusion Matrix
+:-------------------------:|:-------------------------:
+<img src="https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/classification_report.png" width="500" height="300">  |  <img src="https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/cm.png" width="500" height="400">
+
 The final model was evaluated on a test set of 624 chest X-ray images (234 NORMAL, 390 PNEUMONIA) and achieved an overall accuracy of 85%. The model demonstrated strong discriminative performance with an AUC of 0.936.
 
 Recall for PNEUMONIA reached 0.95, indicating high sensitivity and effective detection of infected cases, while recall for NORMAL cases was 0.68. Out of 390 pneumonia cases, 371 were correctly classified, with only 19 false negatives, which is critical in clinical screening scenarios. Although 75 normal cases were misclassified as pneumonia, this trade-off favours patient safety by minimising missed pneumonia diagnoses.
@@ -58,9 +77,9 @@ Recall for PNEUMONIA reached 0.95, indicating high sensitivity and effective det
   - High sensitivity to pneumonia: Recall for PNEUMONIA is 0.95
   - 371 / 390 pneumonia cases correctly classified with only  19 false negatives
   - Model behavior prioritizes patient safety by minimizing missed pneumonia cases
-    ![result](https://github.com/CarlosKim94/credit_risk_prediction/blob/main/EDA/result.png)
   - After hyper parameter tuning, the best performing model is learning_rate = 0.001 and dropout_rate = 0.2, and the model is saved as 'pneumonia_mobilenet_v2.onnx'
   - Fine-tuned MobileNetV2 model ROC_AUC score on test set is 0.936
+    <img src="https://github.com/CarlosKim94/pneumonia_detection/blob/main/image/roc_curve.png" width="500" height="400">
 
 ---
 
