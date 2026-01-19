@@ -83,70 +83,78 @@ Recall for PNEUMONIA reached 0.95, indicating high sensitivity and effective det
 
 ---
 
-## Repository Structure
+## 📁 Repository Structure
 
 ```bash
-├── EDA
-│   ├── correlation.png
-│   ├── correlation_heatmap.png
-│   ├── loan_intent.png
-│   ├── loan_status_distribution.png
-│   ├── prediction_test.png
-│   └── result.png
-├── data
-│   └── credit_risk_dataset.csv
-├── model
-│   ├── model_depth_10_estimator_10_0.839.bin
-│   ├── model_depth_10_estimator_20_0.845.bin
-│   ├── model_depth_10_estimator_40_0.846.bin
-│   ├── model_depth_15_estimator_100_0.855.bin
-│   ├── model_depth_15_estimator_10_0.851.bin
-│   ├── model_depth_15_estimator_20_0.853.bin
-│   ├── model_depth_15_estimator_60_0.854.bin
-│   ├── model_depth_20_estimator_20_0.857.bin
-│   └── model_depth_25_estimator_60_0.858.bin
+├── .github/workflows
+│   └── fly-deploy.yml
+├── .ipynb_checkpoints/
+├── data/chest_xray_dataset
+│   ├── test
+│   │   ├── NORMAL/
+│   │   └── PNEUMONIA/
+│   ├── train
+│   │   ├── NORMAL/
+│   │   └── PNEUMONIA/
+│   └── val
+│   │   ├── NORMAL/
+│   │   └── PNEUMONIA/
+├── image/
+├── k8s
+│   ├── deployment.yaml
+│   ├── hpa.yaml
+│   └── service.yaml
+├── model/
+├── .dockerignore
+├── .gitignore
+├── .python-version
 ├── Dockerfile
 ├── README.md
-├── client01.py
-├── credit_risk_prediction.ipynb
-├── model_training.py
-├── predict.py
+├── app.py
+├── fly.toml
+├── pneumonia_detection.ipynb
+├── pneumonia_detection.py
 ├── pyproject.toml
 ├── requirements.txt
+├── test.py
 └── uv.lock
 ```
 
 Jupyter Notebook for EDA, data preprocessing, model training, hyper parameter tuning
-- [credit_risk_prediction.ipynb](https://github.com/CarlosKim94/credit_risk_prediction/blob/main/credit_risk_prediction.ipynb)
+- [pneumonia_detection.ipynb](https://github.com/CarlosKim94/pneumonia_detection/blob/main/pneumonia_detection.ipynb)
 
-Python script for data pre-processing and training
-- [model_training.py](https://github.com/CarlosKim94/credit_risk_prediction/blob/main/model_training.py)
+Python script for data pre-processing and training the model
+- [pneumonia_detection.py](https://github.com/CarlosKim94/pneumonia_detection/blob/main/pneumonia_detection.py)
   
 ---
 
 ## Requirements & Dependencies
-**Python Version:** 3.12 or above  
+**Python Version:** 3.12.12
 
-[Dependencies](https://github.com/CarlosKim94/credit_risk_prediction/blob/main/pyproject.toml):
-- fastapi>=0.121.1
-- matplotlib>=3.10.7
-- numpy>=2.3.4
-- pandas>=2.3.3
-- requests>=2.32.5
-- scikit-learn>=1.7.2
-- seaborn>=0.13.2
-- uvicorn>=0.38.0
+[Dependencies](https://github.com/CarlosKim94/pneumonia_detection/blob/main/pyproject.toml):
+- fastapi==0.128.0
+- keras-image-helper==0.0.2
+- matplotlib==3.10.8
+- numpy==2.4.0
+- onnx==1.20.1
+- onnxruntime==1.23.2
+- pandas==2.3.3
+- pillow==12.1.0
+- requests==2.32.5
+- scikit-learn==1.8.0
+- seaborn==0.13.2
+- uvicorn==0.40.0
 
 Dependencies will all be automatically installed while deploying in the Docker container in the following section
 
 ---
-## How to Run the Project
+## ▶️ How to Run the Project
 
 ### 1. Clone the Repository
 
 ```bash
-git clone git clone https://github.com/CarlosKim94/credit_risk_prediction.git
-cd credit_risk_prediction
+git clone https://github.com/CarlosKim94/pneumonia_detection.git
+cd pneumonia_detection
 ```
 
 ### 2. Create Virtual Environment
@@ -161,7 +169,7 @@ To deactivate the virtual environment
 deactivate
 ```
 
-### 3. Install Dependencies
+### 3. ⚙️ Install Dependencies
 
 ```bash
 pip install -r requirements.txt
@@ -174,51 +182,51 @@ jupyter notebook
 ```
 
 ### 5. Reproduce Results
-
-- Execute all cells in order in `credit_risk_prediction.ipynb` file
+- Training all the models and selecting hyperparameters require significant amount of time!
+- Execute all cells in order in `peneumonia_detection.ipynb` file
 - Review plots, metrics, and feature importance
 - Compare model performance in the results
 
-### 6. Containerize and Deploy
+### 6. 🐳 Containerize in Docker
 
 - Install [Docker](https://www.docker.com/products/docker-desktop/) in your local machine
 - Keep running Docker app in background
 - Download the python image via:
 ```bash
-docker pull python:3.12.12-bookworm
+docker pull python:3.13.5-slim-bookworm
 ```
 
-- Dockerfile uses `predict.py` which deploys the app via uvicorn and FastAPI
+- Dockerfile uses `app.py` and `pneumonia_mobilnet_v2.onnx` which deploys the app via uvicorn and FastAPI
 - Build and run the Dockerfile
 ```bash
-docker build -t credit_risk_prediction .
-docker run -it --rm -p 9696:9696 credit_risk_prediction
+docker build -t pneumonia-classifier:v1 .
+docker run -it --rm -p 8080:8080 pneumonia-classifier:v1
 ```
 
-### 7. Test the Loan Default Prediction Model
+### 7. 🧪 Test the Model on Local Machine
 
 - While Docker is still running, open a new terminal
-- Change directory to `credit_risk_prediction`
+- Change directory to `pneumonia_detection`
 - Activate virtual environment as in Step 2
 ```bash
 source .venv/bin/activate
 ```
 
-- Test the loan default prediction model with an arbitrary test data stored in `client01.py`
+- Test the model with a test image via `test.py`
 ```bash
-python client01.py
+uv run python test.py
 ```
 - Result would look like:
   
-![prediction_test](https://github.com/CarlosKim94/credit_risk_prediction/blob/main/EDA/prediction_test.png)
+`Top prediction: PNEUMONIA (99.68%)`
 
-- You can make a new test data similar to `client01.py` and compare how the prediction changes
-
+### 8. 🚀 Deploy on Cloud
+https://github.com/user-attachments/assets/5a1b5cee-1147-4c1a-bccc-e2701e22f4a7
 
 ---
 
 ## Acknowledgments
 
-- Dataset: [Kaggle – Credit Risk Dataset](https://www.kaggle.com/datasets/laotse/credit-risk-dataset)
-- Libraries & Tools: Python, scikit-learn, Pandas, Seaborn, Numpy, fastAPI, uvicorn, Docker
-- Inspiration: Financial risk analytics and applied data science research in credit scoring.
+- Dataset: [Kaggle – Pneumonia Dataset](https://www.kaggle.com/datasets/paultimothymooney/chest-xray-pneumonia/data)
+- Libraries & Tools: Python, PyTorch, scikit-learn, Pandas, NumPy, Seaborn, Matplotlib, FastAPI, Uvicorn, Docker, Fly.io
+- Inspiration: Advances in medical image analysis and applied deep learning for healthcare diagnostics.
